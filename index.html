@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Kommentarformular</title>
+</head>
+
+<body>
+    <div class="mainWrapper">
+        <h1>Hinterlasse einen Kommentar</h1>
+        <div class="formWrapper">
+            <form id="comment-form">
+                <input type="text" id="author" placeholder="Dein Name" required />
+                <textarea id="comment" placeholder="Dein Kommentar" required></textarea>
+                <button type="submit">Kommentar senden</button>
+            </form>
+        </div>
+
+        <section class="comments">
+            <h2>Kommentare:</h2>
+        </section>
+    </div>
+
+    <script>
+        document.getElementById('comment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const author = document.getElementById('author').value;
+            const comment = document.getElementById('comment').value;
+
+            const respone = await fetch('/.netlify/functions/save-comment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ author, comment })
+            });
+
+            if (response.ok) {
+                fetchComments();
+            }
+        });
+        fetchComments();
+    </script>
+</body>
+
+</html>
