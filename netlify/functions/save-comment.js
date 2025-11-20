@@ -1,4 +1,5 @@
-const { Pool } = require('pg');  // PostgreSQL
+const fs = require('fs');
+const path = require('path');
 
 exports.handler = async (event) => {
     if (event.httpMethod !== 'POST') {
@@ -18,23 +19,26 @@ exports.handler = async (event) => {
             return { statusCode: 400, headers, body: JSON.stringify({ error: 'Empty comment' }) };
         }
 
-        const pool = new Pool({
-            user: process.env.PGUSER,
-            host: process.env.PGHOST,
-            database: process.env.PGDATABASE,
-            password: process.env.PGPASSWORD,
-            port: process.env.PGPORT || 5432,
-        });
+        // Load exisiting comments from json
+        const filePath = path.join(__dirname, 'comments.json');
+        const data = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath)) : [];
 
-        const result = await pool.query(
-            'INSERT INTO comments (author, comment) VALUES ($1, $2) RETURNING id, author, comment, created_at',
-            [author, comment]
-        );
+        // Create new comment.object
+        const newComment = {
+            id: data.length + 1,
+            author,
+            comment,
+            created_at: new Date().toISOString(),
+        };
+
+        // Save new comment in file
+        data.push(newComment);
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 2))
 
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ omment: result.rows[0] }),
+            body: JSON.stringify({ omment: newComment }),
         };
     } catch (error) {
         console.error(err);

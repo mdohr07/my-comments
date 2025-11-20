@@ -1,4 +1,5 @@
-const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
 
 exports.handler = async (event) => {
     if (event.httpMethod !== 'GET') {
@@ -9,21 +10,16 @@ exports.handler = async (event) => {
         'Access-Control-Allow-Origin': '*',  // for CORS
     };
 
-    try {
-        const pool = new Pool({
-            user: process.env.PGUSER,
-            host: process.env.PGHOST,
-            database: process.env.PGDATABASE,
-            password: process.env.PGPASSWORD,
-            port: process.env.PGPORT || 5432,
-        });
+    try { // load comments from json
+        const filePath = path.join(__dirname, 'comments.json');
+        const data = fs.existsSync(filePath) ? JSON.parse(fs.readFileSync(filePath)) : [];
 
         const result = await pool.query('SELECT id, author, comment, created_at FROM comments ORDER BY created_at DESC LIMIT 100');
 
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify(result.rows),
+            body: JSON.stringify(data),
         };
 
     } catch (error) {
